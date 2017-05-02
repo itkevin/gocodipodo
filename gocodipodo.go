@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path"
@@ -9,9 +8,13 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/headzoo/surf/agent"
 	"github.com/urfave/cli"
 	"gopkg.in/headzoo/surf.v1"
+)
+
+const (
+	LoginURL   = "https://kunde.comdirect.de/lp/wt/login"
+	PostboxURL = "https://kunde.comdirect.de/itx/posteingangsuche"
 )
 
 func main() {
@@ -39,34 +42,25 @@ func main() {
 
 	app.Action = func(c *cli.Context) error {
 		bow := surf.NewBrowser()
-		bow.SetUserAgent(agent.Chrome())
-		err := bow.Open("https://kunde.comdirect.de/lp/wt/login")
-		if err != nil {
-			panic(err)
-		}
+		err := bow.Open(LoginURL)
+		checkErr(err)
 
 		fm, err := bow.Form("#login")
-		if err != nil {
-			panic(err)
-		}
+		checkErr(err)
 
 		fm.Set("loginAction", "loginAction")
 		fm.Input("param1", c.String("user"))
 		fm.Input("param3", c.String("pass"))
 
 		err = fm.Submit()
-		if err != nil {
-			panic(err)
-		}
+		checkErr(err)
 
 		bow.Find(".error-message__text").Each(func(_ int, s *goquery.Selection) {
-			fmt.Println(s.Text())
+			log.Fatal("ERROR: ", s.Text())
 		})
 
-		err = bow.Open("https://kunde.comdirect.de/itx/posteingangsuche")
-		if err != nil {
-			panic(err)
-		}
+		err = bow.Open(PostboxURL)
+		checkErr(err)
 
 		var links []string
 		for _, link := range bow.Links() {
@@ -75,8 +69,10 @@ func main() {
 			}
 		}
 
+		subdir := "comdirect"
+		os.MkdirAll(subdir, os.ModePerm)
 		for _, link := range links {
-			filename := path.Base(link)
+			filename := subdir + "/" + path.Base(link)
 			fout, err := os.Create(filename)
 			if err != nil {
 				log.Printf(
@@ -100,4 +96,10 @@ func main() {
 	}
 
 	app.Run(os.Args)
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatal("ERROR:", err)
+	}
 }
