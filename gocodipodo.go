@@ -62,6 +62,21 @@ func main() {
 		err = bow.Open(PostboxURL)
 		checkErr(err)
 
+		fm1, err := bow.Form("#f1")
+		checkErr(err)
+
+		fm1.Set("f1-j_idt108-nextLink", "f1-j_idt108-nextLink")
+		fm1.Set("f1", "f1")
+		fm1.Input("f1-monatInput", c.String(""))
+		fm1.Input("f1-jahrInput1", c.String(""))
+		fm1.Input("f1-wkn1", c.String(""))
+		fm1.Input("f1-docTyp1", c.String("0"))
+
+		err = fm1.Submit()
+		checkErr(err)
+
+		//log.Printf("%s", bow)
+
 		var links []string
 		for _, link := range bow.Links() {
 			if strings.Contains(link.URL.Path, "dokumentenabruf") {
