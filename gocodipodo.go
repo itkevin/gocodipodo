@@ -75,8 +75,6 @@ func main() {
 		err = fm1.Submit()
 		checkErr(err)
 
-		//log.Printf("%s", bow)
-
 		var links []string
 		for _, link := range bow.Links() {
 			if strings.Contains(link.URL.Path, "dokumentenabruf") {
